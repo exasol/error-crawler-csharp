@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<RootNamespace>error_reporting_csharp_dotnet_tool</RootNamespace>
+
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>exasol-error-parser</ToolCommandName>
+		<PackageOutputPath>./nupkg</PackageOutputPath>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<AssemblyName>exasol-error-parser</AssemblyName>
+		<Version>1.0.1</Version>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
+	  <PackageReference Include="Microsoft.CodeAnalysis" Version="3.9.0" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.9.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="nupkg\" />
+	</ItemGroup>
+
+</Project>
