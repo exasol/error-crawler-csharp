@@ -12,6 +12,8 @@
 		<AssemblyName>exasol-error-parser</AssemblyName>
 		<Version>1.0.1</Version>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<Authors>Pieterjan Spoelders</Authors>
+		<Company>Exasol</Company>
 	</PropertyGroup>
 
 	<ItemGroup>
