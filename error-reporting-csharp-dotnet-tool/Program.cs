@@ -15,6 +15,8 @@ namespace error_reporting_csharp_dotnet_tool
     {
         static async Task Main(string[] args)
         {
+            //https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools-how-to-create
+
             //MSBuildLocator.RegisterDefaults();
 
             string projectPath;

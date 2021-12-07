@@ -2,7 +2,7 @@
   "profiles": {
     "error-reporting-csharp-dotnet-tool": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\repos\\error-reporting-csharp\\error-reporting-dotnet-tool-testproject\\error-reporting-dotnet-tool-testproject.csproj\""
+      "commandLineArgs": "\"C:\\repos\\error-crawler-csharp\\error-reporting-dotnet-tool-testproject\\error-reporting-dotnet-tool-testproject.csproj\""
     }
   }
 }
