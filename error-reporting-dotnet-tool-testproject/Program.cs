@@ -17,13 +17,14 @@ namespace error_reporting_dotnet_tool_testproject
             var exaErrorString = ExaError.MessageBuilder("E-ECC-TEST-2").ToString();
             //Case 3
             var exaErrorObject1 = ExaError.MessageBuilder("E-ECC-TEST-3");
-            exaErrorObject1.Message("Woops! Something went wrong!");
+            exaErrorObject1.Message("Woops! Something went wrong! 1");
             //Case 4
-            var exaErrorObject2 = ExaError.MessageBuilder("E-ECC-TEST-4").Message("Woops! Something went wrong!");
+            var exaErrorObject2 = ExaError.MessageBuilder("E-ECC-TEST-4").Message("Woops! Something went wrong! 1");
+            var exaErrorObject3 = ExaError.MessageBuilder("E-ECC-TEST-4").Message("Woops! Something went wrong! 1").Message("Oh my! Something went wrong! 2"); ;
 
             //
-            var exaErrorObjectMitigation1 = ExaError.MessageBuilder("E-ECC-TEST-5").Message("Woops! Something went wrong!").Mitigation("Do something about it");
-            var exaErrorObjectMitigation2 = ExaError.MessageBuilder("E-ECC-TEST-5").Message("Woops! Something went wrong!").Mitigation("Do something about it").Mitigation("Don't just sit there");
+            var exaErrorObjectMitigation1 = ExaError.MessageBuilder("E-ECC-TESTMIT-1").Message("Woops! Something went wrong!").Mitigation("Do something about it 1");
+            var exaErrorObjectMitigation2 = ExaError.MessageBuilder("E-ECC-TESTMIT-2").Message("Woops! Something went wrong!").Mitigation("Do something about it 1").Mitigation("Don't just sit there 2");
 
 
         }

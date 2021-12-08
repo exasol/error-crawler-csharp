@@ -97,6 +97,7 @@ namespace error_reporting_csharp_dotnet_tool
 
         class EECollector : CSharpSyntaxWalker
         {
+            //use base ctor to specify depth if necessary
 
             public List<ObjectCreationExpressionSyntax> lstObjectCreationExpressions { get; } = new List<ObjectCreationExpressionSyntax>();
             public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
@@ -113,12 +114,31 @@ namespace error_reporting_csharp_dotnet_tool
             public List<InvocationExpressionSyntax> lstInvocationExpressions { get; } = new List<InvocationExpressionSyntax>();
             public override void VisitInvocationExpression(InvocationExpressionSyntax node)
             {
-                if (node.Expression.ToString().Contains("ExaError.MessageBuilder"))
+                base.VisitInvocationExpression(node);
+
+                if (node.Expression.ToString().EndsWith("MessageBuilder"))
                 {
-                    Console.WriteLine("found the helper function!");
+                    //node.Expression.
+                    var argList = node.ArgumentList;
+                    Console.WriteLine($@"found a construction helper function: {argList.Arguments[0]}");
                     lstInvocationExpressions.Add(node);
                 }
-                base.VisitInvocationExpression(node);
+                //this only triggers on the object one
+                else if (node.Expression.ToString().EndsWith("Message"))
+                {
+                    var argList = node.ArgumentList;
+                    Console.WriteLine($@"found a message function: {argList.Arguments[0]}");
+                    var arg = node.ArgumentList;
+                }
+
+                else if (node.Expression.ToString().EndsWith("Mitigation"))
+                {
+                    var argList = node.ArgumentList;
+                    Console.WriteLine($@"found a mitigation function: {argList.Arguments[0]}");
+                    var arg = node.ArgumentList;
+                }
+
+
             }
 
 
