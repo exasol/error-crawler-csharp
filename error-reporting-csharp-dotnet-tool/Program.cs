@@ -102,12 +102,14 @@ namespace error_reporting_csharp_dotnet_tool
             public List<ObjectCreationExpressionSyntax> lstObjectCreationExpressions { get; } = new List<ObjectCreationExpressionSyntax>();
             public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
             {
+                base.VisitObjectCreationExpression(node);
+
                 if (node.Type.ToString().Contains("ErrorMessageBuilder"))
                 {
                     Console.WriteLine("found a new!");
                     lstObjectCreationExpressions.Add(node);
                 }
-                base.VisitObjectCreationExpression(node);
+
 
             }
 
