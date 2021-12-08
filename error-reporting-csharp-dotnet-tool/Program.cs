@@ -127,7 +127,7 @@ namespace error_reporting_csharp_dotnet_tool
                 if (nodeExpression.EndsWith("MessageBuilder") || nodeExpression.EndsWith("Message") ||
                     nodeExpression.EndsWith("TicketMitigation") || nodeExpression.EndsWith("Mitigation"))
                 {
-                    //if the method's called similar but isn't related do nothing with it
+                    //if the method's called similar but isn't related do nothing further
                     if (!IsExasolErrorCodeRelated(SemanticModel, node))
                     {
                         return;
@@ -157,7 +157,7 @@ namespace error_reporting_csharp_dotnet_tool
                     else if (nodeExpression.EndsWith("TicketMitigation"))
                     {
                         var argList = node.ArgumentList;
-                        Console.WriteLine($@"found a mitigation function: {argList.Arguments[0]}");
+                        Console.WriteLine($@"found a ticket mitigation function");
                         var arg = node.ArgumentList;
                     }
                     else if (nodeExpression.EndsWith("Mitigation"))
@@ -172,10 +172,11 @@ namespace error_reporting_csharp_dotnet_tool
 
             public override void VisitLocalDeclarationStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax node)
             {
+
                 base.VisitLocalDeclarationStatement(node);
-                Console.WriteLine($@"Declaration: {node.Declaration.Variables[0].Identifier}:");
-                var init = node.Declaration.Variables[0].Initializer;
-                Console.WriteLine($@"{init}:");
+                Console.WriteLine($@"Found a declaration: {node.Declaration.Variables[0].Identifier}:");
+                //var init = node.Declaration.Variables[0].Initializer;
+                //Console.WriteLine($@"{init}:");
             }
 
 

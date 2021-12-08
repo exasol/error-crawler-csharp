@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "error-reporting-csharp-dotn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "error-reporting-csharp-dotnet-tool-tests", "error-reporting-csharp-dotnet-tool-tests\error-reporting-csharp-dotnet-tool-tests.csproj", "{51227CC6-7D4F-4A85-93A6-9314D7D15B1B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "error-reporting-dotnet-tool-testproject", "error-reporting-dotnet-tool-testproject\error-reporting-dotnet-tool-testproject.csproj", "{F49FEF80-9073-4584-A9B0-4C39AAC1C95C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{51227CC6-7D4F-4A85-93A6-9314D7D15B1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51227CC6-7D4F-4A85-93A6-9314D7D15B1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51227CC6-7D4F-4A85-93A6-9314D7D15B1B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F49FEF80-9073-4584-A9B0-4C39AAC1C95C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F49FEF80-9073-4584-A9B0-4C39AAC1C95C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F49FEF80-9073-4584-A9B0-4C39AAC1C95C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F49FEF80-9073-4584-A9B0-4C39AAC1C95C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
