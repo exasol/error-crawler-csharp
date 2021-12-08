@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -87,31 +88,21 @@ namespace error_reporting_csharp_dotnet_tool
             var root = syntaxTree.GetCompilationUnitRoot();
 
             //we might need this for further or more elaborate analysis later on
-            //var semanticModel = document.GetSemanticModelAsync();
+            var semanticModel = await document.GetSemanticModelAsync();
 
             var collector = new EECollector();
+            collector.SemanticModel = semanticModel;
             collector.Visit(root);
 
-            Console.WriteLine($@"Document: { document.Name } - Found { collector.lstObjectCreationExpressions.Count } and {collector.lstInvocationExpressions.Count} elements");
+            Console.WriteLine($@"Document: { document.Name } - Found {collector.lstInvocationExpressions.Count} elements");
         }
 
         class EECollector : CSharpSyntaxWalker
         {
+            public SemanticModel SemanticModel {get;set;}
+
             //use base ctor to specify depth if necessary
 
-            public List<ObjectCreationExpressionSyntax> lstObjectCreationExpressions { get; } = new List<ObjectCreationExpressionSyntax>();
-            public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-            {
-                base.VisitObjectCreationExpression(node);
-
-                if (node.Type.ToString().Contains("ErrorMessageBuilder"))
-                {
-                    Console.WriteLine("found a new!");
-                    lstObjectCreationExpressions.Add(node);
-                }
-
-
-            }
 
             public List<InvocationExpressionSyntax> lstInvocationExpressions { get; } = new List<InvocationExpressionSyntax>();
             public override void VisitInvocationExpression(InvocationExpressionSyntax node)
@@ -124,6 +115,11 @@ namespace error_reporting_csharp_dotnet_tool
                     var argList = node.ArgumentList;
                     Console.WriteLine($@"found a construction helper function: {argList.Arguments[0]}");
                     lstInvocationExpressions.Add(node);
+
+                    var symbolInfo = SemanticModel.GetSymbolInfo(node);
+                    IMethodSymbol  methodSymbol= symbolInfo.Symbol as IMethodSymbol;
+                    var contType = methodSymbol.ContainingType.ToString();
+                    Console.WriteLine(contType);
                 }
                 //this only triggers on the object one
                 else if (node.Expression.ToString().EndsWith("Message"))
@@ -142,6 +138,16 @@ namespace error_reporting_csharp_dotnet_tool
 
 
             }
+
+            public override void VisitLocalDeclarationStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax node)
+            {
+                base.VisitLocalDeclarationStatement(node);
+                Console.WriteLine($@"Declaration: {node.Declaration.Variables[0].Identifier}:");
+                var init = node.Declaration.Variables[0].Initializer;
+                Console.WriteLine($@"{init}:");
+            }
+
+
 
 
         }

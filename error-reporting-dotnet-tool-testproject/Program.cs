@@ -26,7 +26,12 @@ namespace error_reporting_dotnet_tool_testproject
             var exaErrorObjectMitigation1 = ExaError.MessageBuilder("E-ECC-TESTMIT-1").Message("Woops! Something went wrong!").Mitigation("Do something about it 1");
             var exaErrorObjectMitigation2 = ExaError.MessageBuilder("E-ECC-TESTMIT-2").Message("Woops! Something went wrong!").Mitigation("Do something about it 1").Mitigation("Don't just sit there 2");
 
+            //mixed cases:
+            var mixed1 = ExaError.MessageBuilder("E-ECC-MIXED-1");
+            var mixed2 = ExaError.MessageBuilder("E-ECC-MIXED-2");
 
+            mixed1.Message("Add something afterwards 1");
+            mixed2.Message("Add something afterwards 2");
         }
     }
 }
