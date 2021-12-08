@@ -109,7 +109,8 @@ namespace error_reporting_csharp_dotnet_tool
             static bool IsExasolErrorCodeRelated(SemanticModel semanticModel,CSharpSyntaxNode node)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(node);
-                if (symbolInfo.Symbol.ContainingType.ToString() == "Exasol.ErrorReporting.ExaError")
+                var symbolContainingTypeStr = symbolInfo.Symbol.ContainingType.ToString();
+                if (symbolContainingTypeStr == "Exasol.ErrorReporting.ExaError" || symbolContainingTypeStr == "Exasol.ErrorReporting.ErrorMessageBuilder")
                 {
                     return true;
                 }
