@@ -105,37 +105,67 @@ namespace error_reporting_csharp_dotnet_tool
 
 
             public List<InvocationExpressionSyntax> lstInvocationExpressions { get; } = new List<InvocationExpressionSyntax>();
+
+            static bool IsExasolErrorCodeRelated(SemanticModel semanticModel,CSharpSyntaxNode node)
+            {
+                var symbolInfo = semanticModel.GetSymbolInfo(node);
+                if (symbolInfo.Symbol.ContainingType.ToString() == "Exasol.ErrorReporting.ExaError")
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
             public override void VisitInvocationExpression(InvocationExpressionSyntax node)
             {
                 base.VisitInvocationExpression(node);
 
-                if (node.Expression.ToString().EndsWith("MessageBuilder"))
+                var nodeExpression = node.Expression.ToString();
+                if (nodeExpression.EndsWith("MessageBuilder") || nodeExpression.EndsWith("Message") ||
+                    nodeExpression.EndsWith("TicketMitigation") || nodeExpression.EndsWith("Mitigation"))
                 {
-                    //node.Expression.
-                    var argList = node.ArgumentList;
-                    Console.WriteLine($@"found a construction helper function: {argList.Arguments[0]}");
-                    lstInvocationExpressions.Add(node);
+                    //if the method's called similar but isn't related do nothing with it
+                    if (!IsExasolErrorCodeRelated(SemanticModel, node))
+                    {
+                        return;
+                    }
 
-                    var symbolInfo = SemanticModel.GetSymbolInfo(node);
-                    IMethodSymbol  methodSymbol= symbolInfo.Symbol as IMethodSymbol;
-                    var contType = methodSymbol.ContainingType.ToString();
-                    Console.WriteLine(contType);
-                }
-                //this only triggers on the object one
-                else if (node.Expression.ToString().EndsWith("Message"))
-                {
-                    var argList = node.ArgumentList;
-                    Console.WriteLine($@"found a message function: {argList.Arguments[0]}");
-                    var arg = node.ArgumentList;
-                }
+                    if (node.Expression.ToString().EndsWith("MessageBuilder"))
+                    {
+                        //node.Expression.
+                        var argList = node.ArgumentList;
+                        Console.WriteLine($@"found a construction helper function: {argList.Arguments[0]}");
+                        lstInvocationExpressions.Add(node);
 
-                else if (node.Expression.ToString().EndsWith("Mitigation"))
-                {
-                    var argList = node.ArgumentList;
-                    Console.WriteLine($@"found a mitigation function: {argList.Arguments[0]}");
-                    var arg = node.ArgumentList;
-                }
 
+                        //IMethodSymbol  methodSymbol= symbolInfo.Symbol as IMethodSymbol;
+
+                        //var contType = methodSymbol.ContainingType.ToString();
+                        //Console.WriteLine($@"Symbol: {methodSymbol.ContainingSymbol}");
+                        //Console.WriteLine(contType);
+                    }
+                    //this only triggers on the object one
+                    else if (nodeExpression.EndsWith("Message"))
+                    {
+                        var argList = node.ArgumentList;
+                        Console.WriteLine($@"found a message function: {argList.Arguments[0]}");
+                        var arg = node.ArgumentList;
+                    }
+                    else if (nodeExpression.EndsWith("TicketMitigation"))
+                    {
+                        var argList = node.ArgumentList;
+                        Console.WriteLine($@"found a mitigation function: {argList.Arguments[0]}");
+                        var arg = node.ArgumentList;
+                    }
+                    else if (nodeExpression.EndsWith("Mitigation"))
+                    {
+                        var argList = node.ArgumentList;
+                        Console.WriteLine($@"found a mitigation function: {argList.Arguments[0]}");
+                        var arg = node.ArgumentList;
+                    }
+                }
 
             }
 
