@@ -1,10 +1,7 @@
 ﻿using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,77 +9,85 @@ using System.Threading.Tasks;
 namespace error_reporting_csharp_dotnet_tool
 {
     //https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools-how-to-create
-    class Program
+    partial class Program
     {
         static async Task Main(string[] args)
         {
             //https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools-how-to-create
 
-            //MSBuildLocator.RegisterDefaults();
+            string[] projectEntries;
 
-            string projectPath;
             if (args.Length == 1)
             {
-                projectPath = args[0];
+                projectEntries = new string[1];
+                projectEntries[0] = args[0];
             }
             else
             {
                 string path = Directory.GetCurrentDirectory();
-                string[] fileEntries = Directory.GetFiles(path, "*.csproj");
-                projectPath = fileEntries[0];
+                projectEntries = Directory.GetFiles(path, "*.csproj");
             }
-            await ExtractExaErrorUsage(projectPath);
+
+            ErrorCodeCollection errorCodeCollection = new ErrorCodeCollection();
+            //TODO: read this out from command line and block if it's not provided
+            errorCodeCollection.ProjectShortTag = "ECC";
+
+            foreach (var project in projectEntries ){
+                await ExtractExaErrorUsage(project,errorCodeCollection);
+            }
+            
         }
-            private static async Task ExtractExaErrorUsage(string projectPath)
+        private static async Task ExtractExaErrorUsage(string projectPath,ErrorCodeCollection errorCodeCollection)
+        {
+            // Attempt to set the version of MSBuild.
+            var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            //TODO: this might need more work later to make it more robust
+            var instance = visualStudioInstances.Length == 1
+                // If there is only one instance of MSBuild on this machine, set that as the one to use.
+                ? visualStudioInstances[0]
+                // Handle selecting the version of MSBuild you want to use.
+                : SelectVisualStudioInstance(visualStudioInstances);
+
+            Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
+
+            // NOTE: Be sure to register an instance with the MSBuildLocator 
+            //       before calling MSBuildWorkspace.Create()
+            //       otherwise, MSBuildWorkspace won't MEF compose.
+            MSBuildLocator.RegisterInstance(instance);
+
+            using (var workspace = MSBuildWorkspace.Create())
             {
-                // Attempt to set the version of MSBuild.
-                var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-                var instance = visualStudioInstances.Length == 1
-                    // If there is only one instance of MSBuild on this machine, set that as the one to use.
-                    ? visualStudioInstances[0]
-                    // Handle selecting the version of MSBuild you want to use.
-                    : SelectVisualStudioInstance(visualStudioInstances);
+                // Print message for WorkspaceFailed event to help diagnosing project load failures.
+                workspace.WorkspaceFailed += (o, e) => Console.WriteLine(e.Diagnostic.Message);
 
-                Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
 
-                // NOTE: Be sure to register an instance with the MSBuildLocator 
-                //       before calling MSBuildWorkspace.Create()
-                //       otherwise, MSBuildWorkspace won't MEF compose.
-                MSBuildLocator.RegisterInstance(instance);
+                Console.WriteLine($"Loading project '{projectPath}'");
 
-                using (var workspace = MSBuildWorkspace.Create())
+                //using msbuild workspace https://gist.github.com/DustinCampbell/32cd69d04ea1c08a16ae5c4cd21dd3a3
+
+                // Attach progress reporter so we print projects as they are loaded.
+                //var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter());
+                //Console.WriteLine($"Finished loading solution '{solutionPath}'");
+                //There is also a open project async
+                var project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
+
+                //https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.project?view=roslyn-dotnet-3.9.0
+
+
+                var projectDocuments = project.Documents;//.Where(doc => ! doc.Name.Contains("Assembly")) ;
+
+                //we use the syntax walker to walk through each document
+                //later on we can make this code execute concurrently
+                foreach (var document in projectDocuments)
                 {
-                    // Print message for WorkspaceFailed event to help diagnosing project load failures.
-                    workspace.WorkspaceFailed += (o, e) => Console.WriteLine(e.Diagnostic.Message);
-
-
-                    Console.WriteLine($"Loading project '{projectPath}'");
-
-                    //using msbuild workspace https://gist.github.com/DustinCampbell/32cd69d04ea1c08a16ae5c4cd21dd3a3
-
-                    // Attach progress reporter so we print projects as they are loaded.
-                    //var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter());
-                    //Console.WriteLine($"Finished loading solution '{solutionPath}'");
-                    //There is also a open project async
-                    var project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
-
-                    //https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.project?view=roslyn-dotnet-3.9.0
-
-
-                    var projectDocuments = project.Documents;//.Where(doc => ! doc.Name.Contains("Assembly")) ;
-
-                    //we use the syntax walker to walk through each document
-                    //later on we can make this code execute concurrently
-                    foreach (var document in projectDocuments)
-                {
-                    await AnalyseDocument(document);
+                    await AnalyseDocument(document, errorCodeCollection);
 
                 }
                 //Documents produced from source generators are returned by GetSourceGeneratedDocumentsAsync(CancellationToken).
             }
-            }
+        }
 
-        private static async Task AnalyseDocument(Microsoft.CodeAnalysis.Document document)
+        private static async Task AnalyseDocument(Microsoft.CodeAnalysis.Document document, ErrorCodeCollection errorCodeCollection)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync();
             var root = syntaxTree.GetCompilationUnitRoot();
@@ -90,98 +95,11 @@ namespace error_reporting_csharp_dotnet_tool
             //we might need this for further or more elaborate analysis later on
             var semanticModel = await document.GetSemanticModelAsync();
 
-            var collector = new EECollector();
-            collector.SemanticModel = semanticModel;
-            collector.Visit(root);
+            var errorCodeCrawler = new ErrorCodeCrawler(semanticModel, errorCodeCollection);
 
-            Console.WriteLine($@"Document: { document.Name } - Found {collector.lstInvocationExpressions.Count} elements");
-        }
+            errorCodeCrawler.Visit(root);
 
-        class EECollector : CSharpSyntaxWalker
-        {
-            public SemanticModel SemanticModel {get;set;}
-
-            //use base ctor to specify depth if necessary
-
-
-            public List<InvocationExpressionSyntax> lstInvocationExpressions { get; } = new List<InvocationExpressionSyntax>();
-
-            static bool IsExasolErrorCodeRelated(SemanticModel semanticModel,CSharpSyntaxNode node)
-            {
-                var symbolInfo = semanticModel.GetSymbolInfo(node);
-                var symbolContainingTypeStr = symbolInfo.Symbol.ContainingType.ToString();
-                if (symbolContainingTypeStr == "Exasol.ErrorReporting.ExaError" || symbolContainingTypeStr == "Exasol.ErrorReporting.ErrorMessageBuilder")
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            public override void VisitInvocationExpression(InvocationExpressionSyntax node)
-            {
-                base.VisitInvocationExpression(node);
-
-                var nodeExpression = node.Expression.ToString();
-                if (nodeExpression.EndsWith("MessageBuilder") || nodeExpression.EndsWith("Message") ||
-                    nodeExpression.EndsWith("TicketMitigation") || nodeExpression.EndsWith("Mitigation"))
-                {
-                    //if the method's called similar but isn't related do nothing further
-                    if (!IsExasolErrorCodeRelated(SemanticModel, node))
-                    {
-                        return;
-                    }
-
-                    if (node.Expression.ToString().EndsWith("MessageBuilder"))
-                    {
-                        //node.Expression.
-                        var argList = node.ArgumentList;
-                        Console.WriteLine($@"found a construction helper function: {argList.Arguments[0]}");
-                        lstInvocationExpressions.Add(node);
-
-
-                        //IMethodSymbol  methodSymbol= symbolInfo.Symbol as IMethodSymbol;
-
-                        //var contType = methodSymbol.ContainingType.ToString();
-                        //Console.WriteLine($@"Symbol: {methodSymbol.ContainingSymbol}");
-                        //Console.WriteLine(contType);
-                    }
-                    //this only triggers on the object one
-                    else if (nodeExpression.EndsWith("Message"))
-                    {
-                        var argList = node.ArgumentList;
-                        Console.WriteLine($@"found a message function: {argList.Arguments[0]}");
-                        var arg = node.ArgumentList;
-                    }
-                    else if (nodeExpression.EndsWith("TicketMitigation"))
-                    {
-                        var argList = node.ArgumentList;
-                        Console.WriteLine($@"found a ticket mitigation function");
-                        var arg = node.ArgumentList;
-                    }
-                    else if (nodeExpression.EndsWith("Mitigation"))
-                    {
-                        var argList = node.ArgumentList;
-                        Console.WriteLine($@"found a mitigation function: {argList.Arguments[0]}");
-                        var arg = node.ArgumentList;
-                    }
-                }
-
-            }
-
-            public override void VisitLocalDeclarationStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax node)
-            {
-
-                base.VisitLocalDeclarationStatement(node);
-                Console.WriteLine($@"Found a declaration: {node.Declaration.Variables[0].Identifier}:");
-                //var init = node.Declaration.Variables[0].Initializer;
-                //Console.WriteLine($@"{init}:");
-            }
-
-
-
-
+            Console.WriteLine($@"Document: { document.Name } - Done");
         }
 
         private static VisualStudioInstance SelectVisualStudioInstance(VisualStudioInstance[] visualStudioInstances)
@@ -205,20 +123,6 @@ namespace error_reporting_csharp_dotnet_tool
                     return visualStudioInstances[instanceNumber - 1];
                 }
                 Console.WriteLine("Input not accepted, try again.");
-            }
-        }
-
-        private class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
-        {
-            public void Report(ProjectLoadProgress loadProgress)
-            {
-                var projectDisplay = Path.GetFileName(loadProgress.FilePath);
-                if (loadProgress.TargetFramework != null)
-                {
-                    projectDisplay += $" ({loadProgress.TargetFramework})";
-                }
-
-                Console.WriteLine($"{loadProgress.Operation,-15} {loadProgress.ElapsedTime,-15:m\\:ss\\.fffffff} {projectDisplay}");
             }
         }
     }
