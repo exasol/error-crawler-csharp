@@ -27,6 +27,11 @@ namespace error_reporting_csharp_dotnet_tool
             errorCodeDictionary.Add(identifier, newECEntry);
             return newECEntry;
         }
+
+        public void BuildJSON()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

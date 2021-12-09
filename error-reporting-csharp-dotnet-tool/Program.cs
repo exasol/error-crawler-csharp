@@ -35,6 +35,8 @@ namespace error_reporting_csharp_dotnet_tool
             foreach (var project in projectEntries ){
                 await ExtractExaErrorUsage(project,errorCodeCollection);
             }
+
+            errorCodeCollection.BuildJSON();
             
         }
         private static async Task ExtractExaErrorUsage(string projectPath,ErrorCodeCollection errorCodeCollection)
