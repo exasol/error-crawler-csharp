@@ -58,7 +58,7 @@ namespace error_reporting_csharp_dotnet_tool
                 writer.WritePropertyName("errorCodes");
                 writer.WriteStartArray();
                 //start of error codes array
-                WriteErrorCodeEntry(writer);
+                WriteErrorCodeEntries(writer);
                 //end of error codes array
                 writer.WriteEnd();
 
@@ -67,7 +67,15 @@ namespace error_reporting_csharp_dotnet_tool
             }
         }
 
-        private static void WriteErrorCodeEntry(JsonWriter writer)
+        private void WriteErrorCodeEntries(JsonWriter writer)
+        {
+            foreach (var errorCodeEntry in errorCodeDictionary)
+            {
+                WriteErrorCodeEntry(writer, errorCodeEntry);
+            }
+        }
+
+        private static void WriteErrorCodeEntry(JsonWriter writer, KeyValuePair<string, ErrorCodeEntry> errorCodeEntry)
         {
             writer.WriteValue("DVD read/writer");
             writer.WriteComment("(broken)");
