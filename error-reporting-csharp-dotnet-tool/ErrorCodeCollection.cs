@@ -65,6 +65,8 @@ namespace error_reporting_csharp_dotnet_tool
                 writer.WriteEndObject();
 
             }
+
+            Text.WriteAll(sb.ToString());
         }
 
         private void WriteErrorCodeEntries(JsonWriter writer)
@@ -77,11 +79,28 @@ namespace error_reporting_csharp_dotnet_tool
 
         private static void WriteErrorCodeEntry(JsonWriter writer, KeyValuePair<string, ErrorCodeEntry> errorCodeEntry)
         {
-            writer.WriteValue("DVD read/writer");
-            writer.WriteComment("(broken)");
 
-            writer.WriteValue("500 gigabyte hard drive");
-            writer.WriteValue("200 gigabyte hard drive");
+            writer.WriteStartObject();
+            var errorCodeEntryValue = errorCodeEntry.Value;
+            writer.WritePropertyName("identifier");
+            writer.WriteValue(errorCodeEntryValue.Identifier);
+
+            writer.WritePropertyName("message");
+            string messageStr = string.Empty;
+            foreach( var message in errorCodeEntryValue.Messages)
+            {
+                messageStr += message;
+            }
+            //"sourceFile","sourceLine": maybe later?
+            writer.WritePropertyName("mitigations");
+            writer.WriteStartArray();
+            foreach (var mitigation in errorCodeEntryValue.Messages)
+            {
+                writer.WriteValue(mitigation);
+            }
+            writer.WriteEnd();
+
+            writer.WriteEndObject();
         }
     }
 }

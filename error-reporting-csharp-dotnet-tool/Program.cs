@@ -31,7 +31,7 @@ namespace error_reporting_csharp_dotnet_tool
             ErrorCodeCollection errorCodeCollection = new ErrorCodeCollection();
             //TODO: read this out from command line and block if it's not provided
             errorCodeCollection.ProjectShortTag = "ECC";
-            errorCodeCollection.ProjectName = "place holder project name"
+            errorCodeCollection.ProjectName = "place holder project name";
             errorCodeCollection.ProjectVersion = "1.0.0";
 
             foreach (var project in projectEntries ){
