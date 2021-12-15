@@ -15,7 +15,6 @@ namespace error_reporting_csharp_dotnet_tool
         public string ProjectShortTag { get; set; }
 
         public string ProjectName { get; set; }
-        //public string ProjectVersion { get; set; }
         public ErrorCodeCollection()
         {
             errorCodeDictionary = new Dictionary<string, ErrorCodeEntry>();

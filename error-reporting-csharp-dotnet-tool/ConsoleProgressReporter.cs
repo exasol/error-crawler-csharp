@@ -4,20 +4,17 @@ using System.IO;
 
 namespace error_reporting_csharp_dotnet_tool
 {
-    partial class Program
+    public class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
     {
-        private class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
+        public void Report(ProjectLoadProgress loadProgress)
         {
-            public void Report(ProjectLoadProgress loadProgress)
+            var projectDisplay = Path.GetFileName(loadProgress.FilePath);
+            if (loadProgress.TargetFramework != null)
             {
-                var projectDisplay = Path.GetFileName(loadProgress.FilePath);
-                if (loadProgress.TargetFramework != null)
-                {
-                    projectDisplay += $" ({loadProgress.TargetFramework})";
-                }
-
-                Console.WriteLine($"{loadProgress.Operation,-15} {loadProgress.ElapsedTime,-15:m\\:ss\\.fffffff} {projectDisplay}");
+                projectDisplay += $" ({loadProgress.TargetFramework})";
             }
+
+            Console.WriteLine($"{loadProgress.Operation,-15} {loadProgress.ElapsedTime,-15:m\\:ss\\.fffffff} {projectDisplay}");
         }
     }
 }
