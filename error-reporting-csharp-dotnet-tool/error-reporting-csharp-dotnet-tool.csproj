@@ -26,10 +26,17 @@
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	  <PackageReference Include="NJsonSchema" Version="10.6.5" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Folder Include="nupkg\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="schema\error_code_report-1.0.0.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

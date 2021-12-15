@@ -1,5 +1,7 @@
 ﻿
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NJsonSchema;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +15,7 @@ namespace error_reporting_csharp_dotnet_tool
         public string ProjectShortTag { get; set; }
 
         public string ProjectName { get; set; }
-        public string ProjectVersion { get; set; }
+        //public string ProjectVersion { get; set; }
         public ErrorCodeCollection()
         {
             errorCodeDictionary = new Dictionary<string, ErrorCodeEntry>();
@@ -34,8 +36,20 @@ namespace error_reporting_csharp_dotnet_tool
             errorCodeDictionary.Add(identifier, newECEntry);
             return newECEntry;
         }
+
         //https://www.newtonsoft.com/json/help/html/readingwritingjson.htm
-        public void BuildJSON()
+        //https://github.com/RicoSuter/NJsonSchema/wiki/JsonSchemaValidator
+        public void GenerateJSON()
+        {
+
+            var generatedJSON = BuildJSON();
+
+            ValidateGeneratedJSON(generatedJSON);
+
+            File.WriteAllText("error_code_report.json", generatedJSON);
+        }
+
+        private string BuildJSON()
         {
             StringBuilder sb = new StringBuilder();
             StringWriter sw = new StringWriter(sb);
@@ -52,46 +66,77 @@ namespace error_reporting_csharp_dotnet_tool
                 writer.WritePropertyName("projectName");
                 writer.WriteValue(ProjectName);
 
-                writer.WritePropertyName("projectVersion");
-                writer.WriteValue(ProjectVersion);
-
-                writer.WritePropertyName("errorCodes");
-                writer.WriteStartArray();
-                //start of error codes array
-                WriteErrorCodeEntries(writer);
-                //end of error codes array
-                writer.WriteEnd();
+                WriteErrorCodeSection(writer);
 
                 writer.WriteEndObject();
 
             }
 
-            Text.WriteAll(sb.ToString());
+            return sb.ToString();
+        }
+
+        private static void ValidateGeneratedJSON(string generatedJson)
+        {
+            var schema = JsonSchema.FromFileAsync(@"schema\error_code_report-1.0.0.json").Result;
+
+            var result = schema.Validate(generatedJson);
+            if (result.Count > 0)
+            {
+                throw new Exception("JSON Validation failed");
+                //kept it simple for now, maybe improve this if there's ever any need for this
+            }
+        }
+
+        private void WriteErrorCodeSection(JsonWriter writer)
+        {
+            writer.WritePropertyName("errorCodes");
+            WriteErrorCodeEntries(writer);
         }
 
         private void WriteErrorCodeEntries(JsonWriter writer)
         {
+            writer.WriteStartArray();
             foreach (var errorCodeEntry in errorCodeDictionary)
             {
                 WriteErrorCodeEntry(writer, errorCodeEntry);
             }
+            writer.WriteEnd();
         }
 
         private static void WriteErrorCodeEntry(JsonWriter writer, KeyValuePair<string, ErrorCodeEntry> errorCodeEntry)
         {
+            var errorCodeEntryValue = errorCodeEntry.Value;
 
             writer.WriteStartObject();
-            var errorCodeEntryValue = errorCodeEntry.Value;
+
+            WriteIdentifier(writer, errorCodeEntryValue);
+
+            WriteMessage(writer, errorCodeEntryValue);
+
+            WruiteMitigations(writer, errorCodeEntryValue);
+
+            writer.WriteEndObject();
+        }
+
+        private static void WriteIdentifier(JsonWriter writer, ErrorCodeEntry errorCodeEntryValue)
+        {
             writer.WritePropertyName("identifier");
             writer.WriteValue(errorCodeEntryValue.Identifier);
+        }
 
+        private static void WriteMessage(JsonWriter writer, ErrorCodeEntry errorCodeEntryValue)
+        {
             writer.WritePropertyName("message");
             string messageStr = string.Empty;
-            foreach( var message in errorCodeEntryValue.Messages)
+            foreach (var message in errorCodeEntryValue.Messages)
             {
                 messageStr += message;
             }
-            //"sourceFile","sourceLine": maybe later?
+            writer.WriteValue(messageStr);
+        }
+
+        private static void WruiteMitigations(JsonWriter writer, ErrorCodeEntry errorCodeEntryValue)
+        {
             writer.WritePropertyName("mitigations");
             writer.WriteStartArray();
             foreach (var mitigation in errorCodeEntryValue.Messages)
@@ -99,8 +144,6 @@ namespace error_reporting_csharp_dotnet_tool
                 writer.WriteValue(mitigation);
             }
             writer.WriteEnd();
-
-            writer.WriteEndObject();
         }
     }
 }

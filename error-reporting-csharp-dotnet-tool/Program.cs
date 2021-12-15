@@ -32,13 +32,13 @@ namespace error_reporting_csharp_dotnet_tool
             //TODO: read this out from command line and block if it's not provided
             errorCodeCollection.ProjectShortTag = "ECC";
             errorCodeCollection.ProjectName = "place holder project name";
-            errorCodeCollection.ProjectVersion = "1.0.0";
+            //errorCodeCollection.ProjectVersion = "1.0.0";
 
             foreach (var project in projectEntries ){
                 await ExtractExaErrorUsage(project,errorCodeCollection);
             }
 
-            errorCodeCollection.BuildJSON();
+            errorCodeCollection.GenerateJSON();
             
         }
         private static async Task ExtractExaErrorUsage(string projectPath,ErrorCodeCollection errorCodeCollection)
