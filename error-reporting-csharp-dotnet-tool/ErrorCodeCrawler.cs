@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace error_reporting_csharp_dotnet_tool
 {
@@ -16,7 +17,7 @@ namespace error_reporting_csharp_dotnet_tool
             {
                 SemanticModel = semanticModel;
 
-                if (ErrorCodeCollection==null)
+                if (ErrorCodeCollection == null)
                 {
                     ErrorCodeCollection = new ErrorCodeCollection();
                 }
@@ -26,10 +27,10 @@ namespace error_reporting_csharp_dotnet_tool
                 ErrorCodeCollection = errorCodeCollection;
             }
 
-            public SemanticModel SemanticModel {get;set;}
+            public SemanticModel SemanticModel { get; set; }
             public ErrorCodeCollection ErrorCodeCollection;
 
-            static bool IsExasolErrorCodeRelated(SemanticModel semanticModel,CSharpSyntaxNode node)
+            static bool IsExasolErrorCodeRelated(SemanticModel semanticModel, CSharpSyntaxNode node)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(node);
                 var symbolContainingTypeStr = symbolInfo.Symbol.ContainingType.ToString();
@@ -62,14 +63,14 @@ namespace error_reporting_csharp_dotnet_tool
                         var argList = node.ArgumentList;
                         Console.WriteLine($@"found a construction helper function: {argList.Arguments[0]}");
                         var argument = argList.Arguments[0].ToString();
-                        currentEntry = ErrorCodeCollection.AddEntry(argument);
+                        currentEntry = ErrorCodeCollection.AddEntry(CleanArgument(argument));
                     }
                     else if (nodeExpression.EndsWith("Message"))
                     {
                         var argList = node.ArgumentList;
                         Console.WriteLine($@"found a message function: {argList.Arguments[0]}");
                         var argument = argList.Arguments[0].ToString();
-                        currentEntry.Messages.Add(argument);
+                        currentEntry.Messages.Add(CleanArgument(argument));
                     }
                     else if (nodeExpression.EndsWith("TicketMitigation"))
                     {
@@ -83,12 +84,23 @@ namespace error_reporting_csharp_dotnet_tool
                         var argList = node.ArgumentList;
                         Console.WriteLine($@"found a mitigation function: {argList.Arguments[0]}");
                         var argument = argList.Arguments[0].ToString();
-                        currentEntry.Mitigations.Add(argument);
+                        currentEntry.Mitigations.Add(CleanArgument(argument));
                     }
                 }
 
             }
 
+            private string CleanArgument(string argument)
+            {
+                StringBuilder sb = new StringBuilder(argument);
+                sb.Replace("$@\"", string.Empty);
+                sb.Replace("@$\"", string.Empty);
+                sb.Replace("$\"", string.Empty);
+                sb.Replace("@\"", string.Empty);
+                sb.Replace("\"", string.Empty);
+                return sb.ToString();
+
+            }
         }
     }
 }

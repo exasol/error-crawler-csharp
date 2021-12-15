@@ -139,7 +139,7 @@ namespace error_reporting_csharp_dotnet_tool
         {
             writer.WritePropertyName("mitigations");
             writer.WriteStartArray();
-            foreach (var mitigation in errorCodeEntryValue.Messages)
+            foreach (var mitigation in errorCodeEntryValue.Mitigations)
             {
                 writer.WriteValue(mitigation);
             }

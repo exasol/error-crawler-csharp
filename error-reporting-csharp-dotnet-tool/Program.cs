@@ -96,7 +96,6 @@ namespace error_reporting_csharp_dotnet_tool
             var syntaxTree = await document.GetSyntaxTreeAsync();
             var root = syntaxTree.GetCompilationUnitRoot();
 
-            //we might need this for further or more elaborate analysis later on
             var semanticModel = await document.GetSemanticModelAsync();
 
             var errorCodeCrawler = new ErrorCodeCrawler(semanticModel, errorCodeCollection);
