@@ -40,12 +40,17 @@ namespace error_reporting_csharp_dotnet_tool
         //https://github.com/RicoSuter/NJsonSchema/wiki/JsonSchemaValidator
         public void GenerateJSON()
         {
+            string generatedJSON = BuildAndValidateJSON();
 
+            File.WriteAllText("error_code_report.json", generatedJSON);
+        }
+
+        private string BuildAndValidateJSON()
+        {
             var generatedJSON = BuildJSON();
 
             ValidateGeneratedJSON(generatedJSON);
-
-            File.WriteAllText("error_code_report.json", generatedJSON);
+            return generatedJSON;
         }
 
         private string BuildJSON()

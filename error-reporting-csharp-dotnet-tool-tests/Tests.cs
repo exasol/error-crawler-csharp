@@ -16,6 +16,7 @@ namespace error_reporting_csharp_dotnet_tool_tests
             Options o = new Options();
             o.ProjectShortTag = "ECC";
 
+
             await ExtractErrorCatalogInformation.RunAsync(o);
             //Assert.True(output == expectedOutput);
         }
@@ -33,7 +34,7 @@ namespace error_reporting_csharp_dotnet_tool_tests
         public async void TestWrongShorttag()
         {
             Options o = new Options();
-            o.ProjectShortTag = "ECC";
+            o.ProjectShortTag = "EOC";
 
             await ExtractErrorCatalogInformation.RunAsync(o);
 

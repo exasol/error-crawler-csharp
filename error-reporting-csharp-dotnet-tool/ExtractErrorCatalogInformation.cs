@@ -19,16 +19,22 @@ namespace error_reporting_csharp_dotnet_tool
             projectEntries = SetProjectEntries(o);
 
             ErrorCodeCollection errorCodeCollection = new ErrorCodeCollection();
-
             errorCodeCollection.ProjectShortTag = o.ProjectShortTag;
             errorCodeCollection.ProjectName = o.ProjectName;
+
+            await CollectErrorCodes(projectEntries, errorCodeCollection);
+
+            errorCodeCollection.GenerateJSON();
+        }
+
+        private static async Task CollectErrorCodes( string[] projectEntries, ErrorCodeCollection errorCodeCollection)
+        {
+
 
             foreach (var project in projectEntries)
             {
                 await ExtractExaErrorUsage(project, errorCodeCollection);
             }
-
-            errorCodeCollection.GenerateJSON();
         }
 
         private static string[] SetProjectEntries(Options o)
