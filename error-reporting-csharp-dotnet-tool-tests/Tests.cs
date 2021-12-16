@@ -10,35 +10,35 @@ namespace error_reporting_csharp_dotnet_tool_tests
 {
     public class Tests
     {
-        [Fact]
-        public async void TestAllProjects()
-        {
-            Options o = new Options();
-            o.ProjectShortTag = "ECC";
-
-
-            await ExtractErrorCatalogInformation.RunAsync(o);
-            //Assert.True(output == expectedOutput);
-        }
 
         [Fact]
         public async void TestOneProjectPath()
         {
-            Options o = new Options();
-            o.ProjectShortTag = "ECC";
+            string[] projectEntries = SetProjectEntries();
 
-            await ExtractErrorCatalogInformation.RunAsync(o);
+            ErrorCodeCollection errorCodeCollection = new ErrorCodeCollection();
+            errorCodeCollection.ProjectShortTag = "ECC";
+            errorCodeCollection.ProjectName = "test-project-name";
+
+            await ExtractErrorCatalogInformation.CollectErrorCodes(projectEntries, errorCodeCollection);
+
+            Assert.True(errorCodeCollection.Count > 5);
+            //string generatedJSON = errorCodeCollection.GenerateJSON();
 
         }
-        [Fact]
-        public async void TestWrongShorttag()
+
+        private string[] SetProjectEntries()
         {
-            Options o = new Options();
-            o.ProjectShortTag = "EOC";
-
-            await ExtractErrorCatalogInformation.RunAsync(o);
-
+            string[] projectEntries = new string[1];
+            projectEntries[0] = "..\\..\\..\\..\\error-reporting-dotnet-tool-testproject\\error-reporting-dotnet-tool-testproject.csproj";
+            return projectEntries;
         }
-        //test duplicates
+
+        //[Fact]
+        //public async void TestWrongShorttag()
+        //{
+        
+        //}
+        ////test duplicates
     }
 }

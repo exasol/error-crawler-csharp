@@ -15,6 +15,7 @@ namespace error_reporting_csharp_dotnet_tool
         public string ProjectShortTag { get; set; }
 
         public string ProjectName { get; set; }
+        public int Count { get { return errorCodeDictionary.Count; }}
         public ErrorCodeCollection()
         {
             errorCodeDictionary = new Dictionary<string, ErrorCodeEntry>();
@@ -38,17 +39,14 @@ namespace error_reporting_csharp_dotnet_tool
 
         //https://www.newtonsoft.com/json/help/html/readingwritingjson.htm
         //https://github.com/RicoSuter/NJsonSchema/wiki/JsonSchemaValidator
-        public void GenerateJSON()
+        public string GenerateJSON()
         {
-            string generatedJSON = BuildAndValidateJSON();
-
-            File.WriteAllText("error_code_report.json", generatedJSON);
+            return BuildAndValidateJSON();
         }
 
         private string BuildAndValidateJSON()
         {
             var generatedJSON = BuildJSON();
-
             ValidateGeneratedJSON(generatedJSON);
             return generatedJSON;
         }
@@ -86,8 +84,7 @@ namespace error_reporting_csharp_dotnet_tool
             var result = schema.Validate(generatedJson);
             if (result.Count > 0)
             {
-                throw new Exception("JSON Validation failed");
-                //kept it simple for now, maybe improve this if there's ever any need for this
+                throw new Exception("JSON Schema validation failed.");
             }
         }
 
@@ -117,7 +114,7 @@ namespace error_reporting_csharp_dotnet_tool
 
             WriteMessage(writer, errorCodeEntryValue);
 
-            WruiteMitigations(writer, errorCodeEntryValue);
+            WriteMitigations(writer, errorCodeEntryValue);
 
             writer.WriteEndObject();
         }
@@ -139,7 +136,7 @@ namespace error_reporting_csharp_dotnet_tool
             writer.WriteValue(messageStr);
         }
 
-        private static void WruiteMitigations(JsonWriter writer, ErrorCodeEntry errorCodeEntryValue)
+        private static void WriteMitigations(JsonWriter writer, ErrorCodeEntry errorCodeEntryValue)
         {
             writer.WritePropertyName("mitigations");
             writer.WriteStartArray();

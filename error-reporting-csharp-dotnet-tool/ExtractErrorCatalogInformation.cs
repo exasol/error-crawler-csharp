@@ -11,39 +11,38 @@ namespace error_reporting_csharp_dotnet_tool
     public class ExtractErrorCatalogInformation
     {
 
-        public static async Task RunAsync(Options o)
+        public static async Task RunAsync(Options options)
         {
 
             string[] projectEntries;
 
-            projectEntries = SetProjectEntries(o);
+            projectEntries = SetProjectEntries(options);
 
             ErrorCodeCollection errorCodeCollection = new ErrorCodeCollection();
-            errorCodeCollection.ProjectShortTag = o.ProjectShortTag;
-            errorCodeCollection.ProjectName = o.ProjectName;
+            errorCodeCollection.ProjectShortTag = options.ProjectShortTag;
+            errorCodeCollection.ProjectName = options.ProjectName;
 
             await CollectErrorCodes(projectEntries, errorCodeCollection);
 
-            errorCodeCollection.GenerateJSON();
+            string generatedJSON = errorCodeCollection.GenerateJSON();
+            File.WriteAllText("error_code_report.json", generatedJSON);
         }
 
-        private static async Task CollectErrorCodes( string[] projectEntries, ErrorCodeCollection errorCodeCollection)
+        public static async Task CollectErrorCodes( string[] projectEntries, ErrorCodeCollection errorCodeCollection)
         {
-
-
             foreach (var project in projectEntries)
             {
                 await ExtractExaErrorUsage(project, errorCodeCollection);
             }
         }
 
-        private static string[] SetProjectEntries(Options o)
+        private static string[] SetProjectEntries(Options options)
         {
             string[] projectEntries;
-            if (o.ProjectEntry != null)
+            if (options.ProjectEntry != null)
             {
                 projectEntries = new string[1];
-                projectEntries[0] = o.ProjectEntry;
+                projectEntries[0] = options.ProjectEntry;
             }
             else
             {
