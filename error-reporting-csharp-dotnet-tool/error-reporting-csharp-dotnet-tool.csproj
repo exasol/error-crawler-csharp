@@ -9,12 +9,22 @@
 		<ToolCommandName>exasol-error-crawler</ToolCommandName>
 		<PackageOutputPath>./nupkg</PackageOutputPath>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<AssemblyName>exasol-error-parser</AssemblyName>
+		<AssemblyName>exasol-error-crawler</AssemblyName>
 		<Version>0.0.0</Version>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<Authors>Pieterjan Spoelders</Authors>
 		<Company>Exasol</Company>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <None Remove="schema\error_code_report-1.0.0.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="schema\error_code_report-1.0.0.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="CommandLineParser" Version="2.8.0" />
@@ -32,12 +42,6 @@
 
 	<ItemGroup>
 	  <Folder Include="nupkg\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Update="schema\error_code_report-1.0.0.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	</ItemGroup>
 
 </Project>

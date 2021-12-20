@@ -79,8 +79,8 @@ namespace error_reporting_csharp_dotnet_tool
 
         private static void ValidateGeneratedJSON(string generatedJson)
         {
-            var schema = JsonSchema.FromFileAsync(@"schema\error_code_report-1.0.0.json").Result;
-
+            //var schema = JsonSchema.FromFileAsync(@"schema\error_code_report-1.0.0.json").Result;
+            var schema = JsonSchema.FromJsonAsync(JSONSchemaStore.GetJSONSchema()).Result;
             var result = schema.Validate(generatedJson);
             if (result.Count > 0)
             {

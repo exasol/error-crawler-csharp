@@ -49,7 +49,7 @@ namespace error_reporting_csharp_dotnet_tool
                 string path = Directory.GetCurrentDirectory();
                 projectEntries = Directory.GetFiles(path, "*.csproj");
             }
-
+            Console.WriteLine($"Found {projectEntries.Length} .csproj files");
             return projectEntries;
         }
 
