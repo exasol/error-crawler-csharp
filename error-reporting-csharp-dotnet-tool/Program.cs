@@ -11,7 +11,7 @@ namespace error_reporting_csharp_dotnet_tool
         {
             //https://github.com/commandlineparser/commandline
             await Parser.Default.ParseArguments<Options>(args)
-         .WithParsedAsync<Options>(ExtractErrorCatalogInformation.RunAsync); ;
+         .WithParsedAsync<Options>(ExtractErrorCatalogInformation.RunAsync);
         }
 
     }

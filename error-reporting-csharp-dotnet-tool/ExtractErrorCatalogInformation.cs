@@ -58,11 +58,7 @@ namespace error_reporting_csharp_dotnet_tool
             // Attempt to set the version of MSBuild.
             var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
             //TODO: this might need more work later to make it more robust
-            var instance = visualStudioInstances.Length == 1
-                // If there is only one instance of MSBuild on this machine, set that as the one to use.
-                ? visualStudioInstances[0]
-                // Handle selecting the version of MSBuild you want to use.
-                : SelectVisualStudioInstance(visualStudioInstances);
+            var instance = visualStudioInstances[0];
 
             Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
 
@@ -75,6 +71,8 @@ namespace error_reporting_csharp_dotnet_tool
             {
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) => Console.WriteLine(e.Diagnostic.Message);
+                workspace.WorkspaceFailed += (o, e) => throw new Exception(e.Diagnostic.Kind.ToString() + " : " + e.Diagnostic.Message);
+                //!!! this failed
 
 
                 Console.WriteLine($"Loading project '{projectPath}'");
