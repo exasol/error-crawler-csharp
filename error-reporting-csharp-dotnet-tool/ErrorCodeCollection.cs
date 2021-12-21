@@ -81,10 +81,16 @@ namespace error_reporting_csharp_dotnet_tool
         {
             //var schema = JsonSchema.FromFileAsync(@"schema\error_code_report-1.0.0.json").Result;
             var schema = JsonSchema.FromJsonAsync(JSONSchemaStore.GetJSONSchema()).Result;
-            var result = schema.Validate(generatedJson);
-            if (result.Count > 0)
+            var validationErrors = schema.Validate(generatedJson);
+            if (validationErrors.Count > 0)
             {
-                throw new Exception("JSON Schema validation failed.");
+                string validationSchemaErrors = string.Empty;
+                foreach (var validationError in validationErrors)
+                {
+                    validationSchemaErrors += Environment.NewLine + validationError;
+                }
+                
+                throw new Exception("JSON Schema validation failed:" + validationSchemaErrors);
             }
         }
 
