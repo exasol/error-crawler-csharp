@@ -47,10 +47,15 @@ namespace error_reporting_csharp_dotnet_tool
             else
             {
                 string path = Directory.GetCurrentDirectory();
-                projectEntries = Directory.GetFiles(path, "*.csproj");
+                projectEntries = Directory.GetFiles(path, "*.csproj",SearchOption.AllDirectories);
             }
             Console.WriteLine($"Found {projectEntries.Length} .csproj files");
             return projectEntries;
+
+            if (projectEntries.Length == 0)
+            {
+                throw new Exception("No projects found.");
+            }
         }
 
         private static async Task ExtractExaErrorUsage(string projectPath, ErrorCodeCollection errorCodeCollection)

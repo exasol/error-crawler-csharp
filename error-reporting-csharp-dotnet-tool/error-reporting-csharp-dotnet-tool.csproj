@@ -17,16 +17,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="schema\error_code_report-1.0.0.json" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="schema\error_code_report-1.0.0.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
 	  <PackageReference Include="CommandLineParser" Version="2.8.0" />
 	  <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
 	  <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
@@ -42,6 +32,12 @@
 
 	<ItemGroup>
 	  <Folder Include="nupkg\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="schema\error_code_report-1.0.0.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

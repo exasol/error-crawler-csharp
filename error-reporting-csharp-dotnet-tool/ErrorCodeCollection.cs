@@ -63,7 +63,7 @@ namespace error_reporting_csharp_dotnet_tool
                 writer.WriteStartObject();
 
                 writer.WritePropertyName("$schema");
-                writer.WriteValue("https://schemas.exasol.com/error_code_report-0.2.0.json");
+                writer.WriteValue("https://schemas.exasol.com/error_code_report-1.0.0.json");
 
                 writer.WritePropertyName("projectName");
                 writer.WriteValue(ProjectName);
