@@ -13,6 +13,7 @@ namespace error_reporting_csharp_dotnet_tool
 
         public static async Task RunAsync(Options options)
         {
+            SetMsBuild();
 
             string[] projectEntries;
 
@@ -60,17 +61,7 @@ namespace error_reporting_csharp_dotnet_tool
 
         private static async Task ExtractExaErrorUsage(string projectPath, ErrorCodeCollection errorCodeCollection)
         {
-            // Attempt to set the version of MSBuild.
-            var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-            //TODO: this might need more work later to make it more robust
-            var instance = visualStudioInstances[0];
-
-            Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
-
-            // NOTE: Be sure to register an instance with the MSBuildLocator 
-            //       before calling MSBuildWorkspace.Create()
-            //       otherwise, MSBuildWorkspace won't MEF compose.
-            MSBuildLocator.RegisterInstance(instance);
+            
 
             using (var workspace = MSBuildWorkspace.Create())
             {
@@ -104,6 +95,21 @@ namespace error_reporting_csharp_dotnet_tool
                 }
                 //Documents produced from source generators are returned by GetSourceGeneratedDocumentsAsync(CancellationToken).
             }
+        }
+
+        private static void SetMsBuild()
+        {
+            // Attempt to set the version of MSBuild.
+            var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            //TODO: this might need more work later to make it more robust
+            var instance = visualStudioInstances[0];
+
+            Console.WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
+
+            // NOTE: Be sure to register an instance with the MSBuildLocator 
+            //       before calling MSBuildWorkspace.Create()
+            //       otherwise, MSBuildWorkspace won't MEF compose.
+            MSBuildLocator.RegisterInstance(instance);
         }
 
         private static async Task AnalyseDocument(Microsoft.CodeAnalysis.Document document, ErrorCodeCollection errorCodeCollection)
