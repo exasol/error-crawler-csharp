@@ -1,9 +1,11 @@
 ﻿using error_reporting_csharp_dotnet_tool;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,8 +14,9 @@ namespace error_reporting_csharp_dotnet_tool_tests
     public class Tests
     {
 
+
         [Fact]
-        public async void IntegrationTest()
+        public void IntegrationTest()
         {
             File.Delete("error_code_report.json");
             PackageAndInstallTool();
@@ -21,11 +24,34 @@ namespace error_reporting_csharp_dotnet_tool_tests
             CheckResultingJSON();
         }
 
-        private void PackageAndInstallTool()
+        private static void PackageAndInstallTool()
         {
-            RunCmdStatement("cd ../../../.. && dotnet pack && dotnet tool update -g --add-source .\\error-reporting-csharp-dotnet-tool\\nupkg\\ exasol-error-crawler");
+            string output = RunCmd("cd ../../../.. && dotnet pack");
+
+            string buildVersion = ExtractBuildVersionFromPackageOutput(output);
+            RunCmd($"cd ../../../.. && dotnet tool update -g --add-source .\\error-reporting-csharp-dotnet-tool\\nupkg\\ exasol-error-crawler --version {buildVersion}");
         }
-    
+
+        private static string ExtractBuildVersionFromPackageOutput(string output)
+        {
+            string buildVersion = string.Empty;
+            string packagePathRegexStr = "(?<= Successfully created package ')[\\w\\:\\\\\\-\\.]*(?=')";
+            Regex packagePathRegex = new Regex(packagePathRegexStr);
+            var packagePathMatch = packagePathRegex.Match(output);
+            if (packagePathMatch.Success)
+            {
+                string versionRegexStr = "(?<=crawler\\.)[\\w\\W]*(?=.nupkg)";
+                Regex versionRegex = new Regex(versionRegexStr);
+                var versionMatch = versionRegex.Match(packagePathMatch.Value);
+                if (versionMatch.Success)
+                {
+                    //https://stackoverflow.com/questions/19774155/returning-a-string-from-a-console-application
+                    buildVersion = versionMatch.Value;
+                }
+            }
+
+            return buildVersion;
+        }
 
         private static void CheckResultingJSON()
         {
@@ -38,21 +64,49 @@ namespace error_reporting_csharp_dotnet_tool_tests
         {
             string projectEntry = "..\\..\\..\\..\\error-reporting-dotnet-tool-testproject\\error-reporting-dotnet-tool-testproject.csproj";
             string argument = $"exasol-error-crawler -t ECC -p {projectEntry}";
-            RunCmdStatement(argument);
+            RunCmd(argument);
+        }
+        //https://stackoverflow.com/questions/4291912/process-start-how-to-get-the-output
+        private static string RunCmd(string argument)
+        {
+            ConsoleOutput co = new ConsoleOutput();
+            //* Create your Process
+            Process process = new Process();
+            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.Arguments = $"/c {argument}";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            //* Set your output and error (asynchronous) handlers
+            process.OutputDataReceived += new DataReceivedEventHandler(co.OutputHandler);
+            process.ErrorDataReceived += new DataReceivedEventHandler(co.ErrorHandler);
+            //* Start process and handlers
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
+            if (co.Errors.Length > 0)
+            {
+                throw new Exception($"Something went wrong executing the command: {Environment.NewLine + co.Errors}");
+            }
+            return co.Output;
         }
 
-        private static void RunCmdStatement(string argument)
-        {
-            //https://stackoverflow.com/questions/1469764/run-command-prompt-commands
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            //startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = $"/C {argument}";
-            process.StartInfo = startInfo;
-            process.Start();
-            process.WaitForExit();
+    }
+    class ConsoleOutput
+    {
+        public string Output { get; set; }
+        public string Errors { get; set; }
 
+        public void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            //* Do your stuff with the output (write to console/log/StringBuilder)
+            Output += (outLine.Data);
+        }
+        public void ErrorHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            //* Do your stuff with the output (write to console/log/StringBuilder)
+            Errors += outLine.Data;
         }
     }
 }
