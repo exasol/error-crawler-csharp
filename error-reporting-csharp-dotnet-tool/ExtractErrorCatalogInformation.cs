@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
@@ -82,16 +83,39 @@ namespace error_reporting_csharp_dotnet_tool
                 //There is also a open project async
                 var project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
 
+                var compilation = await project.GetCompilationAsync();
                 //https://docs.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.project?view=roslyn-dotnet-3.9.0
 
 
+                var directoryName = Path.GetDirectoryName(projectPath);
+                
+                // Let's register mscorlib
+                //compilation = compilation.AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+                
+                var outputDirectory = $"{directoryName}\\bin\\debug";
+                if (Directory.Exists(outputDirectory))
+                {
+                    var files = Directory.GetFiles(outputDirectory, "*.dll").ToList(); // You can also look for *.exe files
+
+                    foreach (var f in files)
+                        compilation = compilation.AddReferences(MetadataReference.CreateFromFile(f));
+                }
+
+
+                var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
+                .Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
+
+                if (errors.Any()) throw new Exception(string.Join("\r\n", errors));
+
                 var projectDocuments = project.Documents;//.Where(doc => ! doc.Name.Contains("Assembly")) ;
+
 
                 //we use the syntax walker to walk through each document
                 //later on we can make this code execute concurrently
+
                 foreach (var document in projectDocuments)
                 {
-                    await AnalyseDocument(document, errorCodeCollection);
+                    await AnalyseDocument(document, errorCodeCollection,compilation);
 
                 }
                 //Documents produced from source generators are returned by GetSourceGeneratedDocumentsAsync(CancellationToken).
@@ -113,12 +137,13 @@ namespace error_reporting_csharp_dotnet_tool
             MSBuildLocator.RegisterInstance(instance);
         }
 
-        private static async Task AnalyseDocument(Microsoft.CodeAnalysis.Document document, ErrorCodeCollection errorCodeCollection)
+        private static async Task AnalyseDocument(Microsoft.CodeAnalysis.Document document, ErrorCodeCollection errorCodeCollection, Compilation compilation)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync();
-            var root = syntaxTree.GetCompilationUnitRoot();
+            var tree = await document.GetSyntaxTreeAsync();
+            // Get a root of the syntax tree
+            var root = await tree.GetRootAsync();
 
-            var semanticModel = await document.GetSemanticModelAsync();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
             var errorCodeCrawler = new ErrorCodeCrawler(semanticModel, errorCodeCollection);
 
