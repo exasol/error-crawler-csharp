@@ -70,17 +70,12 @@ namespace error_reporting_csharp_dotnet_tool
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
                 workspace.WorkspaceFailed += (o, e) => Console.WriteLine(e.Diagnostic.Message);
                 workspace.WorkspaceFailed += (o, e) => throw new Exception(e.Diagnostic.Kind.ToString() + " : " + e.Diagnostic.Message);
-                //!!! this failed
-
 
                 Console.WriteLine($"Loading project '{projectPath}'");
 
                 //using msbuild workspace https://gist.github.com/DustinCampbell/32cd69d04ea1c08a16ae5c4cd21dd3a3
 
                 // Attach progress reporter so we print projects as they are loaded.
-                //var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter());
-                //Console.WriteLine($"Finished loading solution '{solutionPath}'");
-                //There is also a open project async
                 var project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
 
                 var compilation = await project.GetCompilationAsync();
@@ -88,38 +83,44 @@ namespace error_reporting_csharp_dotnet_tool
 
 
                 var directoryName = Path.GetDirectoryName(projectPath);
-                
-                // Let's register mscorlib
+
+                //on loading the dependencies: https://www.michalkomorowski.com/2017/03/why-i-hate-roslyn.html
+                //TODO: This is pretty makeshift: I'm not sure if this is 100% fireproof, we'll see later.
+
+                // Let's register mscorlib (NOTE: turned this off since it seemed to conflict/have similar with loading the dlls)
                 //compilation = compilation.AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
-                
+                Console.WriteLine($"Loading assemblies: '{directoryName}'");
                 var outputDirectory = $"{directoryName}\\bin\\debug";
                 if (Directory.Exists(outputDirectory))
                 {
-                    var files = Directory.GetFiles(outputDirectory, "*.dll").ToList(); // You can also look for *.exe files
+                    var files = Directory.GetFiles(outputDirectory, "*.dll", SearchOption.AllDirectories).ToList(); // You can also look for *.exe files
 
                     foreach (var f in files)
                         compilation = compilation.AddReferences(MetadataReference.CreateFromFile(f));
                 }
 
-
-                var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
-                .Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
-
-                if (errors.Any()) throw new Exception(string.Join("\r\n", errors));
+                CheckCompilationDiagnostics(compilation);
 
                 var projectDocuments = project.Documents;//.Where(doc => ! doc.Name.Contains("Assembly")) ;
 
-
                 //we use the syntax walker to walk through each document
                 //later on we can make this code execute concurrently
-
                 foreach (var document in projectDocuments)
                 {
-                    await AnalyseDocument(document, errorCodeCollection,compilation);
+                    await AnalyseDocument(document, errorCodeCollection, compilation);
 
                 }
                 //Documents produced from source generators are returned by GetSourceGeneratedDocumentsAsync(CancellationToken).
             }
+        }
+
+        private static void CheckCompilationDiagnostics(Compilation compilation)
+        {
+            Console.WriteLine($"Checking project compilation diagnostics");
+            var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
+
+            if (errors.Any()) throw new Exception(string.Join("\r\n", errors));
         }
 
         private static void SetMsBuild()
@@ -152,28 +153,5 @@ namespace error_reporting_csharp_dotnet_tool
             Console.WriteLine($@"Document: { document.Name } - Done");
         }
 
-        private static VisualStudioInstance SelectVisualStudioInstance(VisualStudioInstance[] visualStudioInstances)
-        {
-            Console.WriteLine("Multiple installs of MSBuild detected please select one:");
-            for (int i = 0; i < visualStudioInstances.Length; i++)
-            {
-                Console.WriteLine($"Instance {i + 1}");
-                Console.WriteLine($"    Name: {visualStudioInstances[i].Name}");
-                Console.WriteLine($"    Version: {visualStudioInstances[i].Version}");
-                Console.WriteLine($"    MSBuild Path: {visualStudioInstances[i].MSBuildPath}");
-            }
-
-            while (true)
-            {
-                var userResponse = Console.ReadLine();
-                if (int.TryParse(userResponse, out int instanceNumber) &&
-                    instanceNumber > 0 &&
-                    instanceNumber <= visualStudioInstances.Length)
-                {
-                    return visualStudioInstances[instanceNumber - 1];
-                }
-                Console.WriteLine("Input not accepted, try again.");
-            }
-        }
     }
 }

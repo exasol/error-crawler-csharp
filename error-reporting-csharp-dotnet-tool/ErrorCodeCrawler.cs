@@ -74,8 +74,8 @@ namespace error_reporting_csharp_dotnet_tool
                 {
                     var argList = node.ArgumentList;
                     Console.WriteLine($@"found a ticket mitigation function");
-                    var argument = argList.Arguments[0].ToString(); //TODO: eventually get this from the errorhandling package so it updates alongside it.
-                    currentEntry.Mitigations.Add("Ticket mitigation");
+                    var argument = argList.Arguments[0].ToString(); //eventually get this from the errorhandling package so it updates alongside it.
+                    currentEntry.Mitigations.Add("Internal error. Please report it by opening a GitHub issue.");
                 }
                 else if (nodeExpression.EndsWith("Mitigation"))
                 {
