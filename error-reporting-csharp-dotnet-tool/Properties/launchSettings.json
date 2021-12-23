@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "error-reporting-csharp-dotnet-tool": {
+      "commandName": "Project",
+      "commandLineArgs": "-t ECC -p \"C:\\repos\\error-crawler-csharp\\error-reporting-dotnet-tool-testproject\\error-reporting-dotnet-tool-testproject.csproj\""
+    }
+  }
+}

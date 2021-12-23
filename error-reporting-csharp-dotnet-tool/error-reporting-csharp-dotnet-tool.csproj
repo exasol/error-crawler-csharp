@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net5.0</TargetFramework>
+		<RootNamespace>error_reporting_csharp_dotnet_tool</RootNamespace>
+		<!--https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools-how-to-create-->
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>exasol-error-crawler</ToolCommandName>
+		<PackageOutputPath>./nupkg</PackageOutputPath>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<AssemblyName>exasol-error-crawler</AssemblyName>
+		<Version>0.0.0</Version>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<Authors>Pieterjan Spoelders</Authors>
+		<Company>Exasol AG</Company>
+		<RepositoryUrl>https://github.com/exasol/error-crawler-csharp</RepositoryUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="CommandLineParser" Version="2.8.0" />
+	  <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
+	  <PackageReference Include="Microsoft.CodeAnalysis" Version="4.0.1" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.0.1" />
+	  <PackageReference Include="MinVer" Version="2.5.0">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	  <PackageReference Include="NJsonSchema" Version="10.6.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="nupkg\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="schema\error_code_report-1.0.0.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project>
