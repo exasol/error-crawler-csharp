@@ -14,8 +14,8 @@ It runs some validations on these definitions, for example, that no error code i
 
 - Make sure you have the .NET core SDK ( use the dotnet SDK installation step on GitHub runners ).
 
-- You'll need to add the Exasol Github NuGet repository to the nuget package manager or the CI runner, like so: 
-   - On github runners:
+- You'll need to add the Exasol Github NuGet repository to the NuGet package manager on your local machine or the GitHub CI runner, like so: 
+   - On GitHub CI runners:
 	`dotnet nuget add source --username <username/or ci user> --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/EXASOL/index.json"`
    - You can use a GitHub PAT on your local system:
     `dotnet nuget add source --username <username/or ci user> --password <yourPAT> --store-password-in-clear-text --name github "https://nuget.pkg.github.com/EXASOL/index.json"`
@@ -38,7 +38,7 @@ All the configuration of the tool is done by CLI arguments.
 
 ## Configuration
 
-If you write `exasol-error-crawler help` you'll get more information on the supported CLI arguments.
+If you write `exasol-error-crawler --help` you'll get more information on the supported CLI arguments.
 
 Each integration project at exasol has an individual project short tag (e.g. `ECC`). 
 The tool validates that the error reporting objects of the project only use the corresponding short tag.
