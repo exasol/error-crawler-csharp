@@ -68,8 +68,7 @@ namespace error_reporting_csharp_dotnet_tool
             using (var workspace = MSBuildWorkspace.Create())
             {
                 // Print message for WorkspaceFailed event to help diagnosing project load failures.
-                workspace.WorkspaceFailed += (o, e) => Console.WriteLine(e.Diagnostic.Message);
-                workspace.WorkspaceFailed += (o, e) => throw new Exception(e.Diagnostic.Kind.ToString() + " : " + e.Diagnostic.Message);
+                workspace.WorkspaceFailed += (o, e) => Console.WriteLine(e.Diagnostic.Kind + " : " + e.Diagnostic.Message);
 
                 Console.WriteLine($"Loading project '{projectPath}'");
 
