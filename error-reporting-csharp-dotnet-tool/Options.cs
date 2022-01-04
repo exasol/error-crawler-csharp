@@ -12,7 +12,7 @@ namespace error_reporting_csharp_dotnet_tool
             public string ProjectEntry { get; set; }
 
             [Option('n', "project name", Required = false, HelpText = "Provide a project name e.g: \"error-crawler-csharp\"")]
-            public string ProjectName { get; set; } = "error-crawler-csharp";
+            public string ProjectName { get; set; }
         }
 
 }
