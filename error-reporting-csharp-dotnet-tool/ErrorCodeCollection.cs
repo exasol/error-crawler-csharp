@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace error_reporting_csharp_dotnet_tool
 {
@@ -80,7 +81,6 @@ namespace error_reporting_csharp_dotnet_tool
 
         private static void ValidateGeneratedJSON(string generatedJson)
         {
-            //var schema = JsonSchema.FromFileAsync(@"schema\error_code_report-1.0.0.json").Result;
             var schema = JsonSchema.FromJsonAsync(JSONSchemaStore.GetJSONSchema()).Result;
             var validationErrors = schema.Validate(generatedJson);
             if (validationErrors.Count > 0)
@@ -140,7 +140,44 @@ namespace error_reporting_csharp_dotnet_tool
             {
                 messageStr += message;
             }
+            List<String> placeholderValues = new List<String>();
+            messageStr = RewriteStringInterpolationAndAddPlaceholders(messageStr, placeholderValues);
             writer.WriteValue(messageStr);
+
+            WritePlaceholders(writer, placeholderValues);
+        }
+
+        private static void WritePlaceholders(JsonWriter writer, List<string> placeholderValues)
+        {
+            if (placeholderValues.Count > 0) { 
+            writer.WritePropertyName("messagePlaceholders");
+            writer.WriteStartArray();
+            foreach (var placeholder in placeholderValues)
+            {
+                WritePlaceholder(writer, placeholder);
+            }
+            writer.WriteEndArray();
+            }
+        }
+
+        private static void WritePlaceholder(JsonWriter writer, string placeholder)
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("placeholder");
+            writer.WriteValue(placeholder);
+            writer.WriteEndObject();
+        }
+
+        private static string RewriteStringInterpolationAndAddPlaceholders(string messageStr, List<String> placeholderValues)
+        {          
+            Regex stringInterpolation = new Regex("{[\\w\\.^}]*}");
+            return stringInterpolation.Replace(messageStr, match => RewriteWithExtraBrackets(match, placeholderValues));           
+        }
+
+        private static string RewriteWithExtraBrackets(Match match, List<string> placeHolderValues)
+        {
+            placeHolderValues.Add(match.Value.Substring(1,match.Value.Length-2).Replace("{","").Replace("}",""));
+            return $"{{{match.Value}}}";
         }
 
         private static void WriteMitigations(JsonWriter writer, ErrorCodeEntry errorCodeEntryValue)
