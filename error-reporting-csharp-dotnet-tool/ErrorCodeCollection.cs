@@ -170,7 +170,6 @@ namespace error_reporting_csharp_dotnet_tool
 
         private static string RewriteStringInterpolationAndAddPlaceholders(string messageStr, List<String> placeholderValues)
         {          
-            //{[\w\W]*}
             Regex stringInterpolation = new Regex("{[\\w\\.^}]*}");
             return stringInterpolation.Replace(messageStr, match => RewriteWithExtraBrackets(match, placeholderValues));           
         }
