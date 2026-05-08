@@ -35,31 +35,22 @@ namespace error_reporting_csharp_dotnet_tool_tests
         }
         private static void PackageAndInstallTool()
         {
-            string output = RunCmd("cd ../../../.. && dotnet pack");
+            RunCmd("cd ../../../.. && dotnet pack");
 
-            string buildVersion = ExtractBuildVersionFromPackageOutput(output);
-            RunCmd($"cd ../../../.. && dotnet tool update -g --add-source .\\error-reporting-csharp-dotnet-tool\\nupkg\\ exasol-error-crawler --version {buildVersion}");
+            string buildVersion = ExtractBuildVersionFromPackage();
+            RunCmd($"cd ../../../.. && dotnet tool update -g --source .\\error-reporting-csharp-dotnet-tool\\nupkg\\ --source https://api.nuget.org/v3/index.json exasol-error-crawler --version {buildVersion}");
         }
 
-        private static string ExtractBuildVersionFromPackageOutput(string output)
+        private static string ExtractBuildVersionFromPackage()
         {
-            string buildVersion = string.Empty;
-            string packagePathRegexStr = "(?<= Successfully created package ')[\\w\\:\\\\\\-\\.]*(?=')";
-            Regex packagePathRegex = new Regex(packagePathRegexStr);
-            var packagePathMatch = packagePathRegex.Match(output);
-            if (packagePathMatch.Success)
-            {
-                string versionRegexStr = "(?<=crawler\\.)[\\w\\W]*(?=.nupkg)";
-                Regex versionRegex = new Regex(versionRegexStr);
-                var versionMatch = versionRegex.Match(packagePathMatch.Value);
-                if (versionMatch.Success)
-                {
-                    //https://stackoverflow.com/questions/19774155/returning-a-string-from-a-console-application
-                    buildVersion = versionMatch.Value;
-                }
-            }
+            const string packageNamePrefix = "exasol-error-crawler.";
+            var packagePath = Directory.GetFiles(@"..\..\..\..\error-reporting-csharp-dotnet-tool\nupkg", $"{packageNamePrefix}*.nupkg")
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .FirstOrDefault();
 
-            return buildVersion;
+            Assert.False(string.IsNullOrEmpty(packagePath), "Could not find the packed exasol-error-crawler NuGet package.");
+
+            return Path.GetFileNameWithoutExtension(packagePath).Substring(packageNamePrefix.Length);
         }
 
         private static void CheckResultingJSON()
@@ -110,9 +101,9 @@ namespace error_reporting_csharp_dotnet_tool_tests
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
             process.WaitForExit();
-            if (co.Errors.Length > 0)
+            if (process.ExitCode != 0)
             {
-                throw new Exception($"Something went wrong executing the command: {Environment.NewLine + co.Errors}");
+                throw new Exception($"Something went wrong executing the command:{Environment.NewLine}{argument}{Environment.NewLine}{co.Output}{co.Errors}");
             }
             return co.Output;
         }
@@ -120,18 +111,24 @@ namespace error_reporting_csharp_dotnet_tool_tests
     }
     class ConsoleOutput
     {
-        public string Output { get; set; }
-        public string Errors { get; set; }
+        public string Output { get; set; } = string.Empty;
+        public string Errors { get; set; } = string.Empty;
 
         public void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
             //* Do your stuff with the output (write to console/log/StringBuilder)
-            Output += (outLine.Data);
+            if (outLine.Data != null)
+            {
+                Output += outLine.Data + Environment.NewLine;
+            }
         }
         public void ErrorHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
             //* Do your stuff with the output (write to console/log/StringBuilder)
-            Errors += outLine.Data;
+            if (outLine.Data != null)
+            {
+                Errors += outLine.Data + Environment.NewLine;
+            }
         }
     }
 }
