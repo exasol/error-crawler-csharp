@@ -1,4 +1,4 @@
-# error-crawler-csharp 0.5.0, released 2026-06-24
+# error-crawler-csharp 1.0.0, released 2026-06-24
 
 Code Name: Release Automation
 
