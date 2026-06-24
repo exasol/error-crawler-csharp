@@ -46,5 +46,6 @@ The short tag is the only parameter required,
 
 ## Additional Information
 
+* [Changelog](doc/changes/changelog.md)
 * [License](LICENSE)
 
